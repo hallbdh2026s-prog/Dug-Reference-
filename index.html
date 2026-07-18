@@ -1,0 +1,476 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chairside Drug Reference</title>
+<style>
+  :root{
+    --paper:#f5f2ea;
+    --paper-raised:#ffffff;
+    --ink:#20262b;
+    --ink-dim:#5b6570;
+    --line:#ddd6c7;
+    --line-strong:#c9c0ac;
+    --accent:#2f6e64;
+    --accent-ink:#ffffff;
+    --accent-soft:#e2ede9;
+    --warn:#a8631f;
+    --warn-soft:#f3e6d3;
+    --critical:#9c3b3b;
+    --critical-soft:#f3dede;
+    --good:#3f7a4e;
+    --good-soft:#e2ede3;
+    --shadow: 0 1px 2px rgba(32,38,43,0.06), 0 4px 16px rgba(32,38,43,0.06);
+    --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#171b1d;
+      --paper-raised:#1f2427;
+      --ink:#ecebe5;
+      --ink-dim:#a3ada9;
+      --line:#33393c;
+      --line-strong:#454c4f;
+      --accent:#5fa89c;
+      --accent-ink:#0d1513;
+      --accent-soft:#1f3330;
+      --warn:#d0955a;
+      --warn-soft:#362a1c;
+      --critical:#d17d7d;
+      --critical-soft:#3a2323;
+      --good:#7fb98d;
+      --good-soft:#223327;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#171b1d; --paper-raised:#1f2427; --ink:#ecebe5; --ink-dim:#a3ada9;
+    --line:#33393c; --line-strong:#454c4f; --accent:#5fa89c; --accent-ink:#0d1513;
+    --accent-soft:#1f3330; --warn:#d0955a; --warn-soft:#362a1c; --critical:#d17d7d;
+    --critical-soft:#3a2323; --good:#7fb98d; --good-soft:#223327;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.35);
+  }
+  :root[data-theme="light"]{
+    --paper:#f5f2ea; --paper-raised:#ffffff; --ink:#20262b; --ink-dim:#5b6570;
+    --line:#ddd6c7; --line-strong:#c9c0ac; --accent:#2f6e64; --accent-ink:#ffffff;
+    --accent-soft:#e2ede9; --warn:#a8631f; --warn-soft:#f3e6d3; --critical:#9c3b3b;
+    --critical-soft:#f3dede; --good:#3f7a4e; --good-soft:#e2ede3;
+    --shadow: 0 1px 2px rgba(32,38,43,0.06), 0 4px 16px rgba(32,38,43,0.06);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:var(--paper); color:var(--ink); height:100%; overflow:hidden; }
+  body{ font-family:var(--sans); -webkit-font-smoothing:antialiased; }
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; } }
+
+  .app{ display:flex; flex-direction:column; height:100vh; height:100dvh; }
+
+  /* ---------- Header ---------- */
+  .masthead{
+    border-bottom:1px solid var(--line);
+    background:var(--paper);
+    padding:20px clamp(16px,3vw,36px) 16px;
+    flex:0 0 auto;
+  }
+  .masthead-top{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .masthead h1{
+    font-family:var(--serif); font-weight:600; font-size:clamp(20px,2.4vw,26px);
+    margin:0; letter-spacing:0.2px; text-wrap:balance;
+  }
+  .masthead .eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--accent); margin:0 0 4px;
+  }
+  .masthead .rx{ font-family:var(--serif); font-style:italic; color:var(--ink-dim); font-size:15px; }
+  .disclaimer{
+    font-size:12px; color:var(--ink-dim); max-width:62ch; line-height:1.5; margin-top:10px;
+  }
+  .controls{
+    display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; align-items:center;
+  }
+  .search-wrap{ position:relative; flex:1 1 260px; min-width:200px; }
+  .search-wrap svg{ position:absolute; left:11px; top:50%; transform:translateY(-50%); opacity:0.55; pointer-events:none; }
+  #search{
+    width:100%; padding:10px 12px 10px 34px; border-radius:8px; border:1px solid var(--line-strong);
+    background:var(--paper-raised); color:var(--ink); font-size:14px; font-family:var(--sans);
+  }
+  #search:focus, select:focus, .drug-row:focus-visible, .chip-btn:focus-visible{
+    outline:2px solid var(--accent); outline-offset:1px;
+  }
+  select{
+    padding:10px 32px 10px 12px; border-radius:8px; border:1px solid var(--line-strong);
+    background:var(--paper-raised); color:var(--ink); font-size:14px; font-family:var(--sans);
+    appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235b6570' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat:no-repeat; background-position:right 10px center;
+  }
+  .count-tag{
+    font-family:var(--mono); font-size:12px; color:var(--ink-dim); white-space:nowrap; padding:0 4px;
+  }
+
+  /* ---------- Body layout ---------- */
+  .layout{ display:flex; flex:1 1 auto; min-height:0; overflow:hidden; }
+  .list-pane{
+    width:min(38%, 440px); min-width:300px; border-right:1px solid var(--line);
+    overflow-y:auto; background:var(--paper);
+  }
+  .drug-row{
+    display:block; width:100%; text-align:left; background:none; border:none; cursor:pointer;
+    padding:12px clamp(14px,2vw,22px); border-bottom:1px solid var(--line);
+    font-family:inherit; color:inherit;
+  }
+  .drug-row:hover{ background:var(--paper-raised); }
+  .drug-row.active{ background:var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+  .drug-row-top{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .drug-name{ font-weight:600; font-size:15px; }
+  .drug-brand{ font-family:var(--mono); font-size:11px; color:var(--ink-dim); }
+  .drug-cat{ font-size:12px; color:var(--ink-dim); margin-top:2px; }
+  .chip-row{ display:flex; gap:6px; margin-top:7px; flex-wrap:wrap; }
+  .chip{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:0.02em; padding:2px 7px;
+    border-radius:99px; white-space:nowrap; border:1px solid transparent;
+  }
+  .chip.warn{ background:var(--warn-soft); color:var(--warn); border-color:var(--warn); }
+  .chip.good{ background:var(--good-soft); color:var(--good); border-color:var(--good); }
+
+  .empty-list{ padding:32px 20px; color:var(--ink-dim); font-size:14px; text-align:center; }
+
+  /* ---------- Detail pane ---------- */
+  .detail-pane{ flex:1; overflow-y:auto; background:var(--paper-raised); }
+  .detail-inner{ max-width:74ch; margin:0 auto; padding:clamp(20px,3vw,40px) clamp(18px,3vw,40px) 60px; }
+  .detail-empty{
+    height:100%; display:flex; align-items:center; justify-content:center; color:var(--ink-dim);
+    font-family:var(--serif); font-style:italic; font-size:16px; text-align:center; padding:40px;
+  }
+  .detail-head{ border-bottom:2px solid var(--ink); padding-bottom:16px; margin-bottom:20px; }
+  .detail-eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent);
+  }
+  .detail-head h2{ font-family:var(--serif); font-size:clamp(22px,3vw,30px); margin:4px 0 2px; text-wrap:balance; }
+  .detail-brand{ font-family:var(--mono); font-size:13px; color:var(--ink-dim); }
+  .detail-cat{
+    display:inline-block; margin-top:10px; font-size:12.5px; font-weight:600;
+    background:var(--accent-soft); color:var(--accent); padding:4px 10px; border-radius:6px;
+  }
+  .field{ margin-bottom:22px; }
+  .field h3{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--ink-dim); margin:0 0 6px; display:flex; align-items:center; gap:8px;
+  }
+  .field p{ margin:0; line-height:1.6; font-size:15px; }
+  .field.flagged{ padding:12px 14px; border-radius:8px; border-left:3px solid var(--warn); background:var(--warn-soft); }
+  .field.flagged h3{ color:var(--warn); }
+  .field.safe{ border-left:3px solid var(--good); }
+  .field.safe h3{ color:var(--good); }
+  .adverse-list{ display:flex; flex-wrap:wrap; gap:7px; margin:0; padding:0; list-style:none; }
+  .adverse-list li{
+    font-size:13.5px; background:var(--paper); border:1px solid var(--line-strong); border-radius:99px;
+    padding:5px 12px;
+  }
+
+  /* ---------- Footer note ---------- */
+  .foot-note{
+    border-top:1px solid var(--line); padding:10px clamp(16px,3vw,36px); font-size:11.5px;
+    color:var(--ink-dim); text-align:center; background:var(--paper); flex:0 0 auto;
+  }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 780px){
+    .layout{ position:relative; }
+    .list-pane{ width:100%; min-width:0; border-right:none; }
+    .detail-pane{
+      position:fixed; inset:0; top:0; transform:translateX(100%); transition:transform 0.22s ease;
+      z-index:30; padding-top:0;
+    }
+    .detail-pane.open{ transform:translateX(0); }
+    .back-btn{
+      display:flex; align-items:center; gap:6px; border:none; background:var(--paper);
+      border-bottom:1px solid var(--line); width:100%; padding:14px 18px; font-size:14px;
+      font-family:var(--sans); color:var(--accent); font-weight:600; cursor:pointer; position:sticky; top:0;
+    }
+  }
+  @media (min-width:781px){ .back-btn{ display:none; } }
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:6px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+</style>
+
+<div class="app">
+  <header class="masthead">
+    <div class="masthead-top">
+      <div>
+        <p class="eyebrow">Dental Pharmacology &middot; Quick Reference</p>
+        <h1>Chairside Drug Reference</h1>
+      </div>
+      <span class="rx">℞ Top 100 most‑prescribed medications</span>
+    </div>
+    <p class="disclaimer">
+      Compiled from general pharmacology and dental‑management principles for chairside orientation only.
+      Adverse‑effect frequencies reflect commonly cited ranges and vary by dose, population, and study — this is
+      <strong>not</strong> a substitute for current full prescribing information or a clinical drug‑interaction check.
+      Verify before treatment decisions.
+    </p>
+    <div class="controls">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="search" type="text" placeholder="Search by drug or brand name…" autocomplete="off" />
+      </div>
+      <select id="categoryFilter"></select>
+      <select id="flagFilter">
+        <option value="">All precautions</option>
+        <option value="bleed">⚠ Bleeding risk</option>
+        <option value="la">⚠ Vasoconstrictor caution</option>
+      </select>
+      <span class="count-tag" id="countTag"></span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="list-pane" id="listPane" aria-label="Drug list"></nav>
+    <main class="detail-pane" id="detailPane">
+      <button class="back-btn" id="backBtn">&larr; Back to list</button>
+      <div class="detail-inner" id="detailInner">
+        <div class="detail-empty">Select a medication to view its dental profile.</div>
+      </div>
+    </main>
+  </div>
+
+  <div class="foot-note">Lexicomp® Drug Information Handbook for Dentistry was consulted only to confirm scope of coverage — no text was reproduced from it. Content here is an independent clinical summary.</div>
+</div>
+
+<script>
+const DRUGS = [
+{name:"Atorvastatin",brand:"Lipitor",cat:"HMG-CoA Reductase Inhibitor (Statin)",moa:"Competitively inhibits HMG-CoA reductase, the rate-limiting enzyme in hepatic cholesterol synthesis, upregulating LDL-receptor expression and lowering circulating LDL-C.",dental:"No direct effect on routine dental procedures. Statin-associated myalgia can complicate the picture if muscle relaxants are co-prescribed for TMD.",bleed:"No clinically significant effect on hemostasis or platelet function.",la:"No known interaction with local anesthetics or vasoconstrictors.",adverse:["Myalgia","Arthralgia","Diarrhea"],bleedRisk:false,laRisk:false},
+{name:"Rosuvastatin",brand:"Crestor",cat:"HMG-CoA Reductase Inhibitor (Statin)",moa:"Inhibits HMG-CoA reductase, reducing hepatic cholesterol synthesis and increasing LDL-receptor-mediated clearance of LDL-C.",dental:"No routine precautions; consider drug-associated myalgia in the differential for reported muscle/jaw pain.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Myalgia","Headache","Nausea"],bleedRisk:false,laRisk:false},
+{name:"Simvastatin",brand:"Zocor",cat:"HMG-CoA Reductase Inhibitor (Statin)",moa:"Inhibits HMG-CoA reductase, decreasing cholesterol biosynthesis and increasing LDL clearance.",dental:"Azole antifungals and macrolides (erythromycin, clarithromycin) raise simvastatin levels via CYP3A4 inhibition, increasing myopathy/rhabdomyolysis risk — prefer azithromycin if a macrolide is needed.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Myalgia","Headache","Constipation"],bleedRisk:false,laRisk:false},
+{name:"Lisinopril",brand:"Prinivil, Zestril",cat:"ACE Inhibitor",moa:"Blocks conversion of angiotensin I to angiotensin II, reducing vasoconstriction and aldosterone secretion.",dental:"Dry cough is common. ACE-inhibitor angioedema (rare but serious) can involve the lips, tongue, and floor of mouth — a dental emergency. Chronic NSAID use can blunt antihypertensive effect.",bleed:"No significant direct effect on bleeding.",la:"No specific vasoconstrictor precaution at usual dental doses; monitor blood pressure if poorly controlled.",adverse:["Dry cough","Dizziness","Headache"],bleedRisk:false,laRisk:false},
+{name:"Losartan",brand:"Cozaar",cat:"Angiotensin II Receptor Blocker (ARB)",moa:"Blocks angiotensin II at the AT1 receptor, preventing vasoconstriction and aldosterone release.",dental:"Orthostatic hypotension possible — raise the chair slowly. No cough, unlike ACE inhibitors. NSAIDs may blunt antihypertensive efficacy.",bleed:"No significant effect on bleeding.",la:"No specific precaution; standard epinephrine doses are acceptable.",adverse:["Dizziness","Upper respiratory infection","Back pain"],bleedRisk:false,laRisk:false},
+{name:"Valsartan",brand:"Diovan",cat:"Angiotensin II Receptor Blocker (ARB)",moa:"Selectively blocks the AT1 angiotensin II receptor, producing vasodilation and reduced aldosterone.",dental:"Orthostatic hypotension possible when rising from a supine chair position.",bleed:"No significant effect on bleeding.",la:"No specific precaution.",adverse:["Dizziness","Fatigue","Hyperkalemia"],bleedRisk:false,laRisk:false},
+{name:"Amlodipine",brand:"Norvasc",cat:"Calcium Channel Blocker (Dihydropyridine)",moa:"Blocks L-type calcium channels in vascular smooth muscle, causing peripheral vasodilation.",dental:"Well-documented cause of gingival hyperplasia, especially with poor plaque control — reinforce hygiene and consider periodontal referral for overgrowth.",bleed:"No significant effect on bleeding.",la:"No specific vasoconstrictor precaution.",adverse:["Peripheral edema","Dizziness","Flushing"],bleedRisk:false,laRisk:false},
+{name:"Metoprolol",brand:"Toprol-XL, Lopressor",cat:"Beta-1 Selective Blocker",moa:"Selectively blocks beta-1 adrenergic receptors, reducing heart rate, contractility, and cardiac output.",dental:"Orthostatic hypotension and xerostomia reported. Selectivity is dose-dependent and can be lost at higher doses.",bleed:"No significant effect on bleeding.",la:"Cardioselective at typical doses, so limited epinephrine (≤2 cartridges of 1:100,000) is generally acceptable — aspirate carefully.",adverse:["Fatigue","Dizziness","Bradycardia"],bleedRisk:false,laRisk:true},
+{name:"Atenolol",brand:"Tenormin",cat:"Beta-1 Selective Blocker",moa:"Selectively blocks beta-1 receptors, decreasing heart rate and myocardial oxygen demand.",dental:"Orthostatic hypotension; xerostomia reported.",bleed:"No significant effect on bleeding.",la:"Cardioselective, but limit epinephrine to conservative doses and aspirate to avoid intravascular injection.",adverse:["Fatigue","Bradycardia","Cold extremities"],bleedRisk:false,laRisk:true},
+{name:"Carvedilol",brand:"Coreg",cat:"Nonselective Beta + Alpha-1 Blocker",moa:"Blocks beta-1, beta-2, and alpha-1 adrenergic receptors, reducing heart rate, contractility, and vascular resistance.",dental:"Significant orthostatic hypotension risk — raise the chair slowly; xerostomia possible.",bleed:"No significant effect on bleeding.",la:"Nonselective blockade risks unopposed alpha-mediated hypertension with epinephrine — use minimal effective vasoconstrictor dose and aspirate.",adverse:["Dizziness","Fatigue","Diarrhea"],bleedRisk:false,laRisk:true},
+{name:"Propranolol",brand:"Inderal",cat:"Nonselective Beta Blocker",moa:"Nonselectively blocks beta-1 and beta-2 adrenergic receptors, lowering heart rate and contractility.",dental:"Xerostomia possible; also used for anxiety/tremor, which may reduce visible dental-anxiety cues.",bleed:"No significant effect on bleeding.",la:"Unopposed alpha-1 vasoconstriction with epinephrine can cause acute hypertension and reflex bradycardia — limit to small doses (≈2 cartridges of 1:100,000) and aspirate.",adverse:["Bradycardia","Fatigue","Dizziness"],bleedRisk:false,laRisk:true},
+{name:"Hydrochlorothiazide",brand:"Microzide",cat:"Thiazide Diuretic",moa:"Inhibits sodium/chloride reabsorption in the distal convoluted tubule, increasing sodium and water excretion.",dental:"Xerostomia is common and raises caries/candidiasis risk; lichenoid drug reactions reported.",bleed:"No significant effect on bleeding.",la:"No specific vasoconstrictor precaution; watch for orthostatic hypotension.",adverse:["Xerostomia","Dizziness","Hypokalemia"],bleedRisk:false,laRisk:false},
+{name:"Furosemide",brand:"Lasix",cat:"Loop Diuretic",moa:"Inhibits the Na-K-2Cl cotransporter in the loop of Henle, producing potent diuresis.",dental:"Xerostomia common; electrolyte disturbances can predispose to arrhythmia under stress.",bleed:"No significant direct effect on bleeding.",la:"No specific precaution, but use epinephrine cautiously if electrolyte imbalance-related arrhythmia is a concern.",adverse:["Xerostomia","Dizziness","Electrolyte disturbances"],bleedRisk:false,laRisk:false},
+{name:"Spironolactone",brand:"Aldactone",cat:"Potassium-Sparing Diuretic (Aldosterone Antagonist)",moa:"Competitively blocks aldosterone receptors in the distal nephron, promoting sodium/water excretion while retaining potassium.",dental:"Xerostomia and oral lichenoid reactions reported.",bleed:"No significant effect on bleeding.",la:"No specific precaution.",adverse:["Hyperkalemia","Gynecomastia","Dizziness"],bleedRisk:false,laRisk:false},
+{name:"Clopidogrel",brand:"Plavix",cat:"Antiplatelet (P2Y12 Inhibitor)",moa:"Irreversibly blocks the P2Y12 ADP receptor on platelets, preventing platelet aggregation for the platelet's lifespan.",dental:"Increased intra- and postoperative bleeding for extractions/periodontal surgery. Do not discontinue without consulting the prescriber — most single-tooth extractions proceed safely with local hemostatic measures.",bleed:"Significantly increases bleeding risk, especially combined with aspirin (dual antiplatelet therapy); local measures (sutures, gauze pressure, tranexamic acid rinse) usually suffice.",la:"No direct interaction; use careful aspirating technique and consider infiltration over block injections when hematoma risk is a concern.",adverse:["Bleeding/bruising","GI upset","Rash"],bleedRisk:true,laRisk:false},
+{name:"Warfarin",brand:"Coumadin",cat:"Vitamin K Antagonist Anticoagulant",moa:"Inhibits vitamin K epoxide reductase, blocking synthesis of clotting factors II, VII, IX, and X.",dental:"Check INR before surgery (simple extractions generally proceed if INR is therapeutic, with local hemostatic measures). Avoid NSAIDs. Metronidazole, fluconazole, and macrolides potentiate warfarin via CYP interactions and can push INR dangerously high.",bleed:"Markedly increases bleeding risk; use local hemostatic measures (oxidized cellulose, sutures, tranexamic acid mouthrinse) for invasive procedures.",la:"No direct interaction, but block injections carry higher hematoma risk — prefer infiltration when feasible and aspirate carefully.",adverse:["Bleeding/bruising","Nausea"],bleedRisk:true,laRisk:false},
+{name:"Apixaban",brand:"Eliquis",cat:"Direct Oral Anticoagulant (Factor Xa Inhibitor)",moa:"Directly and selectively inhibits factor Xa, blocking conversion of prothrombin to thrombin.",dental:"Increased bleeding risk for extractions/surgery. Timing procedures near trough drug levels plus local hemostatic measures is generally preferred over discontinuation for routine extractions.",bleed:"Increased bleeding risk without a readily available in-office reversal agent; use local hemostatic measures for invasive procedures.",la:"No direct interaction; use caution with block injections given hematoma risk.",adverse:["Bleeding/bruising","Anemia"],bleedRisk:true,laRisk:false},
+{name:"Rivaroxaban",brand:"Xarelto",cat:"Direct Oral Anticoagulant (Factor Xa Inhibitor)",moa:"Directly inhibits factor Xa, reducing thrombin generation and clot formation.",dental:"Increased bleeding risk with extractions/surgery; scheduling near trough levels and local hemostatic agents are generally preferred over stopping the drug.",bleed:"Increased bleeding risk; local hemostatic measures recommended for invasive procedures.",la:"No direct interaction; caution with block injections.",adverse:["Bleeding/bruising","Anemia"],bleedRisk:true,laRisk:false},
+{name:"Aspirin (low-dose)",brand:"81 mg cardioprotective",cat:"Antiplatelet (COX-1 Inhibitor, Salicylate)",moa:"Irreversibly acetylates cyclooxygenase-1, blocking thromboxane A2 synthesis and platelet aggregation for the life of the platelet (~7–10 days).",dental:"Mildly increased bleeding at extraction sites, usually manageable with local measures. Low-dose cardioprotective aspirin is generally continued through routine dental surgery rather than stopped.",bleed:"Mild increase in bleeding tendency; typically does not require discontinuation for simple extractions.",la:"No specific interaction.",adverse:["GI upset","Bruising"],bleedRisk:true,laRisk:false},
+{name:"Digoxin",brand:"Lanoxin",cat:"Cardiac Glycoside",moa:"Inhibits the Na+/K+-ATPase pump in cardiac myocytes, increasing intracellular calcium and contractility while slowing AV conduction.",dental:"Narrow therapeutic index — nausea, arrhythmia, or visual disturbance may signal toxicity. Erythromycin/clarithromycin can raise digoxin levels via altered gut flora and P-glycoprotein interaction.",bleed:"No significant effect on bleeding.",la:"Use epinephrine cautiously and in minimal amounts — digoxin-related arrhythmias can be exacerbated by exogenous catecholamines.",adverse:["Nausea","Visual disturbances (at toxic levels)"],bleedRisk:false,laRisk:true},
+{name:"Amiodarone",brand:"Cordarone, Pacerone",cat:"Class III Antiarrhythmic",moa:"Blocks potassium channels (with additional sodium, calcium, and beta-blocking effects), prolonging the cardiac action potential.",dental:"Oral/lip pigmentation and photosensitivity reported; taste disturbance possible.",bleed:"Potentiates warfarin when co-administered, indirectly increasing bleeding risk in those patients.",la:"Use vasoconstrictors cautiously given the underlying arrhythmia and effect on cardiac conduction — minimal epinephrine dose preferred.",adverse:["Photosensitivity","Taste disturbance","Tremor"],bleedRisk:false,laRisk:true},
+{name:"Diltiazem",brand:"Cardizem",cat:"Calcium Channel Blocker (Nondihydropyridine)",moa:"Blocks L-type calcium channels in cardiac and vascular smooth muscle, slowing AV conduction and causing vasodilation.",dental:"Gingival hyperplasia is a well-recognized side effect, especially with poor oral hygiene — reinforce hygiene and monitor gingiva.",bleed:"No significant effect on bleeding.",la:"No specific vasoconstrictor precaution.",adverse:["Gingival hyperplasia","Edema","Headache"],bleedRisk:false,laRisk:false},
+{name:"Verapamil",brand:"Calan",cat:"Calcium Channel Blocker (Nondihydropyridine)",moa:"Blocks L-type calcium channels, slowing AV nodal conduction and reducing myocardial contractility.",dental:"Gingival hyperplasia reported.",bleed:"No significant effect on bleeding.",la:"No specific precaution.",adverse:["Constipation","Gingival hyperplasia","Dizziness"],bleedRisk:false,laRisk:false},
+{name:"Isosorbide Mononitrate",brand:"Imdur",cat:"Long-Acting Nitrate",moa:"Releases nitric oxide, activating guanylate cyclase to increase cGMP and relax vascular smooth muscle, reducing preload.",dental:"Orthostatic hypotension risk — raise the chair slowly; headache common.",bleed:"No significant effect on bleeding.",la:"No specific precaution; avoid excessive epinephrine that could provoke reflex tachycardia against a vasodilated baseline.",adverse:["Headache","Dizziness","Orthostatic hypotension"],bleedRisk:false,laRisk:false},
+{name:"Nitroglycerin",brand:"Sublingual / patch",cat:"Short-Acting Nitrate",moa:"Releases nitric oxide to relax vascular smooth muscle and reduce cardiac preload, relieving anginal chest pain.",dental:"Angina patients should have their nitroglycerin available chairside; stress-reduction protocols recommended given anxiety-triggered angina risk.",bleed:"No significant effect on bleeding.",la:"No specific precaution; ensure adequate anesthesia to control pain-related catecholamine surges.",adverse:["Headache","Flushing","Hypotension"],bleedRisk:false,laRisk:false},
+{name:"Ezetimibe",brand:"Zetia",cat:"Cholesterol Absorption Inhibitor",moa:"Inhibits intestinal absorption of cholesterol at the brush border via NPC1L1 transporter blockade.",dental:"No significant oral or dental effects.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Diarrhea","Fatigue"],bleedRisk:false,laRisk:false},
+{name:"Fenofibrate",brand:"Tricor",cat:"Fibrate (PPAR-alpha Agonist)",moa:"Activates PPAR-alpha, increasing lipoprotein lipase activity and reducing triglycerides.",dental:"No significant direct dental effects.",bleed:"May potentiate warfarin if co-prescribed.",la:"No known interaction.",adverse:["Nausea","Elevated liver enzymes"],bleedRisk:false,laRisk:false},
+{name:"Levothyroxine",brand:"Synthroid",cat:"Thyroid Hormone Replacement (T4)",moa:"Synthetic thyroxine (T4), converted peripherally to active T3, restoring normal metabolic rate in hypothyroidism.",dental:"Untreated/undertreated hypothyroidism can cause macroglossia and delayed healing; overtreatment produces a thyrotoxic state with increased catecholamine sensitivity.",bleed:"No significant effect on bleeding.",la:"Well-controlled patients need no precaution; undertreated or overtreated (thyrotoxic) patients warrant minimal epinephrine due to arrhythmia risk.",adverse:["Palpitations (if overdosed)","Insomnia (if overdosed)"],bleedRisk:false,laRisk:true},
+{name:"Metformin",brand:"Glucophage",cat:"Biguanide Antidiabetic",moa:"Decreases hepatic gluconeogenesis and increases peripheral insulin sensitivity without stimulating insulin secretion.",dental:"Low hypoglycemia risk as monotherapy; GI upset and metallic taste occasionally reported.",bleed:"No significant effect on bleeding.",la:"No specific interaction.",adverse:["Diarrhea","Nausea","Metallic taste"],bleedRisk:false,laRisk:false},
+{name:"Glipizide",brand:"Glucotrol",cat:"Sulfonylurea Antidiabetic",moa:"Stimulates pancreatic beta cells to release insulin by closing ATP-sensitive potassium channels.",dental:"Hypoglycemia risk rises with prolonged NPO status or missed meals around appointments — schedule morning visits and confirm normal eating/dosing.",bleed:"No significant effect on bleeding.",la:"No specific interaction; manage stress carefully as it can affect glucose control.",adverse:["Hypoglycemia","Weight gain"],bleedRisk:false,laRisk:false},
+{name:"Glimepiride",brand:"Amaryl",cat:"Sulfonylurea Antidiabetic",moa:"Stimulates insulin release from pancreatic beta cells via ATP-sensitive potassium channel closure.",dental:"Hypoglycemia risk with missed meals around appointments; keep a glucose source available chairside.",bleed:"No significant effect on bleeding.",la:"No specific interaction.",adverse:["Hypoglycemia","Dizziness"],bleedRisk:false,laRisk:false},
+{name:"Insulin Glargine",brand:"Lantus",cat:"Long-Acting Insulin",moa:"Binds insulin receptors to promote peripheral glucose uptake and suppress hepatic glucose output, providing basal coverage.",dental:"Hypoglycemia is the primary chairside concern if an appointment displaces a meal — schedule mornings, confirm normal dosing, and keep glucose available.",bleed:"No significant effect on bleeding.",la:"No specific interaction.",adverse:["Hypoglycemia","Injection site reactions"],bleedRisk:false,laRisk:false},
+{name:"Insulin Lispro",brand:"Humalog",cat:"Rapid-Acting Insulin",moa:"Rapid-onset insulin analog promoting cellular glucose uptake and suppressing hepatic glucose production.",dental:"High hypoglycemia risk if dosed and treatment then delays eating — coordinate timing and monitor closely during treatment.",bleed:"No significant effect on bleeding.",la:"No specific interaction.",adverse:["Hypoglycemia"],bleedRisk:false,laRisk:false},
+{name:"Sitagliptin",brand:"Januvia",cat:"DPP-4 Inhibitor",moa:"Inhibits dipeptidyl peptidase-4, prolonging incretin (GLP-1) activity to increase glucose-dependent insulin secretion.",dental:"Low hypoglycemia risk as monotherapy.",bleed:"No significant effect on bleeding.",la:"No specific interaction.",adverse:["Upper respiratory infection","Headache"],bleedRisk:false,laRisk:false},
+{name:"Empagliflozin",brand:"Jardiance",cat:"SGLT2 Inhibitor",moa:"Blocks sodium-glucose cotransporter-2 in the renal proximal tubule, increasing urinary glucose excretion.",dental:"Increased risk of oral/genital candidiasis and dehydration — consider in patients presenting with oral candidiasis of unclear origin.",bleed:"No significant effect on bleeding.",la:"No specific interaction.",adverse:["Genital mycotic infection","Urinary tract infection"],bleedRisk:false,laRisk:false},
+{name:"Pioglitazone",brand:"Actos",cat:"Thiazolidinedione",moa:"Activates PPAR-gamma receptors, increasing peripheral insulin sensitivity.",dental:"Fluid retention/edema; no direct oral effects.",bleed:"No significant effect on bleeding.",la:"No specific interaction.",adverse:["Edema","Weight gain"],bleedRisk:false,laRisk:false},
+{name:"Prednisone",brand:"Generic",cat:"Corticosteroid (Glucocorticoid)",moa:"Binds glucocorticoid receptors to suppress inflammatory mediator synthesis and immune response.",dental:"Chronic use causes adrenal suppression — patients may need supplemental steroid dosing for stressful/surgical procedures; delayed wound healing and increased infection risk.",bleed:"No significant direct effect on clotting, though chronic use can increase capillary fragility and easy bruising.",la:"No specific vasoconstrictor precaution; plan stress-dose steroid needs for invasive procedures in adrenally suppressed patients.",adverse:["Weight gain","Mood changes","Insomnia","Increased appetite"],bleedRisk:false,laRisk:false},
+{name:"Methylprednisolone",brand:"Medrol",cat:"Corticosteroid (Glucocorticoid)",moa:"Binds glucocorticoid receptors, suppressing inflammation and immune activity; often prescribed as a tapering dose pack.",dental:"Adrenal suppression with prolonged use; delayed healing and infection risk after oral surgery.",bleed:"No significant direct effect; long-term use may increase capillary fragility.",la:"No specific precaution.",adverse:["Insomnia","Mood changes","GI upset"],bleedRisk:false,laRisk:false},
+{name:"Alendronate",brand:"Fosamax",cat:"Bisphosphonate",moa:"Binds hydroxyapatite in bone and inhibits osteoclast-mediated bone resorption.",dental:"Associated with medication-related osteonecrosis of the jaw (MRONJ), particularly after invasive procedures (extractions, implants) — risk is lower with oral vs IV bisphosphonates but still requires informed consent and conservative technique.",bleed:"No significant effect on bleeding.",la:"No specific interaction with local anesthesia.",adverse:["Esophageal irritation","Musculoskeletal pain"],bleedRisk:false,laRisk:false},
+{name:"Omeprazole",brand:"Prilosec",cat:"Proton Pump Inhibitor",moa:"Irreversibly inhibits the H+/K+-ATPase in gastric parietal cells, suppressing acid secretion.",dental:"Chronic use in patients with concurrent reflux is linked to dental erosion; associated with increased oral candidiasis risk.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Headache","Abdominal pain"],bleedRisk:false,laRisk:false},
+{name:"Pantoprazole",brand:"Protonix",cat:"Proton Pump Inhibitor",moa:"Irreversibly blocks the gastric parietal cell proton pump, reducing acid secretion.",dental:"Reflux-related dental erosion is a consideration in long-term users; chronic acid suppression is linked to oral candidiasis.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Headache","Diarrhea"],bleedRisk:false,laRisk:false},
+{name:"Esomeprazole",brand:"Nexium",cat:"Proton Pump Inhibitor",moa:"Inhibits the gastric H+/K+-ATPase pump, suppressing gastric acid production.",dental:"Similar profile to other PPIs; consider reflux-related dental erosion in long-term users.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Headache","Nausea"],bleedRisk:false,laRisk:false},
+{name:"Famotidine",brand:"Pepcid",cat:"H2 Receptor Antagonist",moa:"Blocks histamine H2 receptors on gastric parietal cells, reducing acid secretion.",dental:"No significant direct oral effects.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Headache","Dizziness"],bleedRisk:false,laRisk:false},
+{name:"Ondansetron",brand:"Zofran",cat:"5-HT3 Receptor Antagonist (Antiemetic)",moa:"Blocks serotonin 5-HT3 receptors centrally and peripherally, reducing nausea and vomiting.",dental:"Useful for managing post-sedation nausea; QT prolongation is a consideration if combined with other QT-prolonging drugs used in sedation.",bleed:"No significant effect on bleeding.",la:"No specific interaction; caution combining with other QT-prolonging agents.",adverse:["Headache","Constipation"],bleedRisk:false,laRisk:false},
+{name:"Albuterol",brand:"ProAir, Ventolin",cat:"Short-Acting Beta-2 Agonist (SABA)",moa:"Stimulates beta-2 adrenergic receptors in bronchial smooth muscle, causing bronchodilation.",dental:"Keep the patient's rescue inhaler available chairside for asthmatic patients; overuse causes tremor and tachycardia that can mimic anxiety.",bleed:"No significant effect on bleeding.",la:"Tachycardia/tremor from albuterol can be additive with epinephrine — use conservative vasoconstrictor doses after heavy recent inhaler use.",adverse:["Tremor","Tachycardia","Nervousness"],bleedRisk:false,laRisk:true},
+{name:"Fluticasone",brand:"Flonase (nasal/inhaled)",cat:"Inhaled/Intranasal Corticosteroid",moa:"Binds glucocorticoid receptors locally to reduce airway/nasal mucosal inflammation with minimal systemic absorption.",dental:"Inhaled forms are strongly associated with oral candidiasis — instruct patients to rinse with water after each use; hoarseness also reported.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Oral candidiasis (inhaled form)","Hoarseness","Headache"],bleedRisk:false,laRisk:false},
+{name:"Montelukast",brand:"Singulair",cat:"Leukotriene Receptor Antagonist",moa:"Blocks the cysteinyl leukotriene-1 receptor, reducing bronchoconstriction and airway inflammation.",dental:"No significant direct dental effects.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Headache","Upper respiratory infection"],bleedRisk:false,laRisk:false},
+{name:"Loratadine",brand:"Claritin",cat:"Second-Generation Antihistamine (H1 Blocker)",moa:"Selectively blocks peripheral histamine H1 receptors with minimal CNS penetration or sedation.",dental:"Mild xerostomia possible, far less sedating than first-generation antihistamines.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Headache","Fatigue"],bleedRisk:false,laRisk:false},
+{name:"Cetirizine",brand:"Zyrtec",cat:"Second-Generation Antihistamine (H1 Blocker)",moa:"Selectively blocks H1 histamine receptors peripherally, with mild sedation relative to other second-generation agents.",dental:"Mild xerostomia possible.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Somnolence","Xerostomia"],bleedRisk:false,laRisk:false},
+{name:"Diphenhydramine",brand:"Benadryl",cat:"First-Generation Antihistamine (H1 Blocker)",moa:"Blocks H1 histamine receptors and crosses the blood-brain barrier, producing significant sedation and anticholinergic effects.",dental:"Marked xerostomia and sedation; sometimes used adjunctively in dental sedation protocols but can potentiate other CNS depressants used for anxiolysis.",bleed:"No significant effect on bleeding.",la:"Sedative/anticholinergic effects are additive with other sedatives used alongside local anesthesia — monitor for excess sedation.",adverse:["Sedation","Xerostomia","Dizziness"],bleedRisk:false,laRisk:false},
+{name:"Sertraline",brand:"Zoloft",cat:"SSRI Antidepressant",moa:"Selectively inhibits presynaptic serotonin reuptake, increasing synaptic serotonin availability.",dental:"Xerostomia is common, raising caries and candidiasis risk; bruxism has been reported with SSRIs.",bleed:"Impairs platelet serotonin uptake (platelets use it for aggregation), mildly increasing bleeding risk — additive with NSAIDs, aspirin, and anticoagulants.",la:"No direct interaction; vasoconstrictors are generally safe at standard doses.",adverse:["Nausea","Xerostomia","Insomnia","Sexual dysfunction"],bleedRisk:true,laRisk:false},
+{name:"Escitalopram",brand:"Lexapro",cat:"SSRI Antidepressant",moa:"Selectively inhibits serotonin reuptake at the presynaptic neuron.",dental:"Xerostomia common; bruxism reported.",bleed:"Mildly increased bleeding risk via impaired platelet serotonin uptake, additive with NSAIDs/anticoagulants.",la:"No specific interaction; vasoconstrictors generally safe.",adverse:["Nausea","Xerostomia","Insomnia"],bleedRisk:true,laRisk:false},
+{name:"Fluoxetine",brand:"Prozac",cat:"SSRI Antidepressant",moa:"Selectively inhibits serotonin reuptake; long half-life and active metabolite versus other SSRIs.",dental:"Xerostomia and bruxism reported.",bleed:"Mildly increased bleeding risk via platelet serotonin depletion, additive with NSAIDs/anticoagulants.",la:"No specific interaction; standard vasoconstrictor use acceptable.",adverse:["Nausea","Insomnia","Headache","Xerostomia"],bleedRisk:true,laRisk:false},
+{name:"Citalopram",brand:"Celexa",cat:"SSRI Antidepressant",moa:"Selectively inhibits serotonin reuptake at the presynaptic neuron.",dental:"Xerostomia common.",bleed:"Mildly increased bleeding risk, additive with NSAIDs/anticoagulants.",la:"No specific interaction.",adverse:["Nausea","Xerostomia","Somnolence"],bleedRisk:true,laRisk:false},
+{name:"Paroxetine",brand:"Paxil",cat:"SSRI Antidepressant",moa:"Selectively inhibits serotonin reuptake; more anticholinergic activity than other SSRIs.",dental:"More pronounced xerostomia than other SSRIs due to anticholinergic activity.",bleed:"Mildly increased bleeding risk via platelet serotonin depletion.",la:"No specific interaction.",adverse:["Xerostomia","Somnolence","Nausea","Sexual dysfunction"],bleedRisk:true,laRisk:false},
+{name:"Duloxetine",brand:"Cymbalta",cat:"SNRI Antidepressant",moa:"Inhibits reuptake of both serotonin and norepinephrine at the presynaptic neuron.",dental:"Xerostomia is common; also used off-label for chronic orofacial pain.",bleed:"Mildly increased bleeding risk via serotonergic platelet effects.",la:"Norepinephrine reuptake inhibition can theoretically potentiate exogenous epinephrine — use conservative vasoconstrictor doses.",adverse:["Nausea","Xerostomia","Fatigue"],bleedRisk:true,laRisk:true},
+{name:"Venlafaxine",brand:"Effexor",cat:"SNRI Antidepressant",moa:"Inhibits serotonin and norepinephrine reuptake.",dental:"Xerostomia common; bruxism reported.",bleed:"Mildly increased bleeding risk.",la:"Norepinephrine reuptake inhibition may potentiate vasoconstrictors — use conservative epinephrine doses.",adverse:["Nausea","Xerostomia","Insomnia","Hypertension"],bleedRisk:true,laRisk:true},
+{name:"Bupropion",brand:"Wellbutrin",cat:"Norepinephrine-Dopamine Reuptake Inhibitor (NDRI)",moa:"Inhibits reuptake of norepinephrine and dopamine; lowers seizure threshold at higher doses.",dental:"Xerostomia common; lowered seizure threshold is relevant if other stimulating drugs are used during sedation.",bleed:"No significant serotonergic platelet effect (non-serotonergic mechanism).",la:"Norepinephrine reuptake inhibition theoretically potentiates epinephrine — use conservative doses.",adverse:["Xerostomia","Insomnia","Headache","Weight loss"],bleedRisk:false,laRisk:true},
+{name:"Trazodone",brand:"Desyrel",cat:"Serotonin Antagonist/Reuptake Inhibitor (SARI)",moa:"Weakly inhibits serotonin reuptake and blocks postsynaptic 5-HT2A receptors, producing sedation; often used off-label for insomnia.",dental:"Significant xerostomia and sedation.",bleed:"Mild serotonergic platelet effect, additive with NSAIDs/anticoagulants.",la:"No specific vasoconstrictor precaution; watch for additive sedation with other CNS depressants used in dental anxiolysis.",adverse:["Sedation","Xerostomia","Dizziness","Orthostatic hypotension"],bleedRisk:true,laRisk:false},
+{name:"Mirtazapine",brand:"Remeron",cat:"Atypical (Tetracyclic) Antidepressant",moa:"Antagonizes presynaptic alpha-2 and specific serotonin/histamine receptors, increasing norepinephrine and serotonin release with sedating, appetite-stimulating effects.",dental:"Significant xerostomia and sedation; increased appetite can affect caries risk.",bleed:"No major direct platelet effect reported at clinically significant levels.",la:"No specific vasoconstrictor precaution.",adverse:["Sedation","Increased appetite/weight gain","Xerostomia"],bleedRisk:false,laRisk:false},
+{name:"Amitriptyline",brand:"Elavil",cat:"Tricyclic Antidepressant (TCA)",moa:"Inhibits reuptake of serotonin and norepinephrine and blocks muscarinic, histaminergic, and alpha-adrenergic receptors; used for depression, neuropathic pain, and migraine prophylaxis.",dental:"Marked xerostomia (strong anticholinergic effect) significantly increases caries and candidiasis risk; orthostatic hypotension common.",bleed:"No major direct effect on platelet function.",la:"Potentiates exogenous epinephrine/norepinephrine, risking hypertension and arrhythmia — use minimal vasoconstrictor doses and avoid epinephrine-impregnated retraction cord.",adverse:["Xerostomia","Sedation","Orthostatic hypotension","Weight gain"],bleedRisk:false,laRisk:true},
+{name:"Alprazolam",brand:"Xanax",cat:"Benzodiazepine",moa:"Enhances GABA-A receptor-mediated chloride influx, producing anxiolytic, sedative, and muscle-relaxant effects.",dental:"Commonly prescribed as pre-appointment anxiolysis; additive CNS depression with other sedatives/opioids used in-office — patient needs an escort home.",bleed:"No significant effect on bleeding.",la:"No direct interaction; ensure adequate monitoring if combined with in-office sedation due to additive CNS/respiratory depression.",adverse:["Sedation","Drowsiness","Impaired coordination"],bleedRisk:false,laRisk:false},
+{name:"Lorazepam",brand:"Ativan",cat:"Benzodiazepine",moa:"Enhances GABA-A mediated inhibitory neurotransmission.",dental:"Commonly used for preoperative anxiolysis in dentistry; additive sedation with opioids/nitrous oxide requires careful dosing and monitoring.",bleed:"No significant effect on bleeding.",la:"No direct interaction; monitor for additive CNS depression during sedation procedures.",adverse:["Sedation","Dizziness","Weakness"],bleedRisk:false,laRisk:false},
+{name:"Clonazepam",brand:"Klonopin",cat:"Benzodiazepine",moa:"Enhances GABA-A receptor activity, providing anticonvulsant and anxiolytic effects with a long half-life.",dental:"Long-acting sedation can persist into and after the appointment; additive CNS depression with other sedatives.",bleed:"No significant effect on bleeding.",la:"No direct interaction.",adverse:["Sedation","Dizziness","Fatigue"],bleedRisk:false,laRisk:false},
+{name:"Diazepam",brand:"Valium",cat:"Benzodiazepine",moa:"Enhances GABA-A receptor-mediated chloride conductance, producing sedative, anxiolytic, and muscle-relaxant effects; long-acting with active metabolites.",dental:"Historically used for oral premedication before dental procedures; long duration and active metabolites can cause prolonged sedation.",bleed:"No significant effect on bleeding.",la:"No direct interaction; monitor for additive sedation with in-office anxiolysis.",adverse:["Sedation","Drowsiness","Muscle weakness"],bleedRisk:false,laRisk:false},
+{name:"Zolpidem",brand:"Ambien",cat:"Sedative-Hypnotic (Non-Benzodiazepine)",moa:"Selectively binds the benzodiazepine site on GABA-A receptors to promote sleep onset.",dental:"Primarily a bedtime medication with limited same-day relevance; residual sedation possible if taken close to a morning appointment.",bleed:"No significant effect on bleeding.",la:"No direct interaction.",adverse:["Somnolence","Dizziness","Headache"],bleedRisk:false,laRisk:false},
+{name:"Buspirone",brand:"Buspar",cat:"Anxiolytic (5-HT1A Partial Agonist)",moa:"Partial agonist at serotonin 5-HT1A receptors, producing anxiolysis without significant sedation or dependence potential.",dental:"Xerostomia possible but generally well tolerated with minimal sedation.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Dizziness","Nausea","Headache"],bleedRisk:false,laRisk:false},
+{name:"Gabapentin",brand:"Neurontin",cat:"Anticonvulsant / Neuropathic Pain Agent",moa:"Binds the alpha-2-delta subunit of voltage-gated calcium channels, reducing excitatory neurotransmitter release.",dental:"Sedation and dizziness are common; additive CNS/respiratory depression with opioids prescribed for dental pain — the FDA has flagged this combination.",bleed:"No significant effect on bleeding.",la:"No direct interaction; caution when co-prescribing opioids given additive sedative effects.",adverse:["Somnolence","Dizziness","Peripheral edema","Ataxia"],bleedRisk:false,laRisk:false},
+{name:"Pregabalin",brand:"Lyrica",cat:"Anticonvulsant / Neuropathic Pain Agent",moa:"Binds the alpha-2-delta subunit of voltage-gated calcium channels, reducing neurotransmitter release.",dental:"Sedation and dizziness common; additive CNS/respiratory depression if opioids are co-prescribed for dental pain.",bleed:"No significant effect on bleeding.",la:"No direct interaction; caution combining with opioids.",adverse:["Somnolence","Dizziness","Peripheral edema","Xerostomia"],bleedRisk:false,laRisk:false},
+{name:"Topiramate",brand:"Topamax",cat:"Anticonvulsant",moa:"Blocks voltage-gated sodium channels, enhances GABA activity, and inhibits carbonic anhydrase.",dental:"Taste disturbances reported; reduced salivary buffering and mild metabolic acidosis have been linked to increased caries risk in some patients.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Paresthesia","Taste disturbance","Cognitive slowing","Weight loss"],bleedRisk:false,laRisk:false},
+{name:"Lamotrigine",brand:"Lamictal",cat:"Anticonvulsant / Mood Stabilizer",moa:"Blocks voltage-gated sodium channels, stabilizing neuronal membranes and reducing glutamate release.",dental:"Serious rash (including Stevens-Johnson syndrome) can present with oral mucosal lesions early in therapy — refer urgently if oral ulceration appears in a patient recently started on this drug.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Headache","Dizziness","Diplopia"],bleedRisk:false,laRisk:false},
+{name:"Levetiracetam",brand:"Keppra",cat:"Anticonvulsant",moa:"Binds synaptic vesicle protein SV2A, modulating neurotransmitter release; precise antiseizure mechanism not fully defined.",dental:"Behavioral/mood changes and drowsiness possible; be aware of the patient's seizure history and stress-related triggers in the chair.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Somnolence","Irritability","Dizziness"],bleedRisk:false,laRisk:false},
+{name:"Phenytoin",brand:"Dilantin",cat:"Anticonvulsant (Hydantoin)",moa:"Blocks voltage-gated sodium channels, stabilizing neuronal membranes and limiting seizure spread.",dental:"Classically associated with gingival hyperplasia in up to half of long-term users — meticulous hygiene and periodontal maintenance are essential; surgical gingivectomy sometimes required.",bleed:"No significant direct effect on bleeding.",la:"No specific vasoconstrictor precaution; be alert to seizure triggers.",adverse:["Gingival hyperplasia","Ataxia","Nystagmus","Drowsiness"],bleedRisk:false,laRisk:false},
+{name:"Valproic Acid / Divalproex",brand:"Depakote",cat:"Anticonvulsant / Mood Stabilizer",moa:"Increases GABA availability and blocks voltage-gated sodium channels, stabilizing neuronal excitability.",dental:"Can cause thrombocytopenia and platelet dysfunction — consider a CBC/platelet check before major oral surgery in long-term users.",bleed:"Increased bleeding risk due to potential thrombocytopenia and impaired platelet aggregation.",la:"No specific vasoconstrictor precaution.",adverse:["Nausea","Tremor","Weight gain","Hair thinning"],bleedRisk:true,laRisk:false},
+{name:"Lithium Carbonate",brand:"Generic",cat:"Mood Stabilizer",moa:"Precise mechanism unclear; modulates neurotransmitter release and intracellular signaling, stabilizing mood in bipolar disorder.",dental:"Xerostomia and metallic taste common; NSAIDs can raise lithium toward toxic levels via reduced renal clearance — prefer acetaminophen for dental pain.",bleed:"No significant direct effect on bleeding.",la:"No known interaction; monitor for tremor or other signs of lithium toxicity.",adverse:["Xerostomia","Tremor","Polyuria","Metallic taste"],bleedRisk:false,laRisk:false},
+{name:"Quetiapine",brand:"Seroquel",cat:"Atypical Antipsychotic",moa:"Antagonizes dopamine D2 and serotonin 5-HT2A receptors, along with histaminergic and adrenergic receptors, producing antipsychotic and sedative effects.",dental:"Significant xerostomia and sedation; orthostatic hypotension is common — raise the chair slowly.",bleed:"No significant direct effect on bleeding.",la:"No specific interaction; monitor for additive sedation with other CNS depressants.",adverse:["Sedation","Xerostomia","Weight gain","Dizziness"],bleedRisk:false,laRisk:false},
+{name:"Aripiprazole",brand:"Abilify",cat:"Atypical Antipsychotic",moa:"Partial agonist at dopamine D2 and serotonin 5-HT1A receptors, antagonist at 5-HT2A, providing a more balanced dopaminergic profile.",dental:"Mild xerostomia; akathisia (restlessness) can make it harder for patients to sit still for treatment.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Akathisia","Headache","Insomnia"],bleedRisk:false,laRisk:false},
+{name:"Risperidone",brand:"Risperdal",cat:"Atypical Antipsychotic",moa:"Antagonizes dopamine D2 and serotonin 5-HT2A receptors.",dental:"Xerostomia and sedation; orthostatic hypotension possible.",bleed:"No significant effect on bleeding.",la:"No specific interaction.",adverse:["Sedation","Weight gain","Extrapyramidal symptoms"],bleedRisk:false,laRisk:false},
+{name:"Cyclobenzaprine",brand:"Flexeril",cat:"Skeletal Muscle Relaxant",moa:"Centrally acting and structurally related to TCAs; reduces muscle hyperactivity via brainstem effects rather than direct muscle action.",dental:"Significant xerostomia and sedation; sometimes prescribed by dentists for TMD/myofascial pain — additive sedation with opioids/benzodiazepines used for anxiety.",bleed:"No significant effect on bleeding.",la:"TCA-like structure may theoretically potentiate vasoconstrictors — use conservative epinephrine doses.",adverse:["Xerostomia","Sedation","Dizziness"],bleedRisk:false,laRisk:true},
+{name:"Tizanidine",brand:"Zanaflex",cat:"Skeletal Muscle Relaxant (Alpha-2 Agonist)",moa:"Agonizes central alpha-2 adrenergic receptors, reducing excitatory neurotransmitter release to spinal motor neurons.",dental:"Significant sedation, xerostomia, and orthostatic hypotension.",bleed:"No significant effect on bleeding.",la:"No specific interaction, but watch for additive hypotension when moving from a supine to upright chair position.",adverse:["Sedation","Xerostomia","Hypotension","Weakness"],bleedRisk:false,laRisk:false},
+{name:"Methocarbamol",brand:"Robaxin",cat:"Skeletal Muscle Relaxant",moa:"Centrally acting CNS depressant that reduces muscle spasm through general sedation rather than a direct muscle effect.",dental:"Sedation common; additive CNS depression with dental sedatives/opioids.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Sedation","Dizziness","Headache"],bleedRisk:false,laRisk:false},
+{name:"Ibuprofen",brand:"Motrin, Advil",cat:"NSAID (Nonselective COX Inhibitor)",moa:"Nonselectively inhibits cyclooxygenase (COX-1 and COX-2), reducing prostaglandin synthesis and inflammation/pain.",dental:"First-line for acute dental pain, often combined with acetaminophen; chronic use can impair renal function and blunt antihypertensive medications.",bleed:"Reversibly inhibits platelet COX-1, causing a temporary increase in bleeding time — usually clinically minor for a single extraction but additive with anticoagulants/antiplatelets.",la:"No direct interaction with local anesthetics.",adverse:["GI upset","Dyspepsia","Headache"],bleedRisk:true,laRisk:false},
+{name:"Naproxen",brand:"Aleve",cat:"NSAID (Nonselective COX Inhibitor)",moa:"Nonselectively inhibits COX-1 and COX-2, reducing prostaglandin-mediated pain and inflammation; longer half-life than ibuprofen.",dental:"Effective for dental pain/inflammation; longer duration of platelet inhibition than ibuprofen due to a longer half-life.",bleed:"Reversibly inhibits platelet aggregation for the duration of drug activity, additive with anticoagulants/antiplatelets.",la:"No direct interaction.",adverse:["GI upset","Heartburn","Headache"],bleedRisk:true,laRisk:false},
+{name:"Meloxicam",brand:"Mobic",cat:"NSAID (Preferential COX-2 Inhibitor)",moa:"Preferentially inhibits COX-2 over COX-1 at typical doses, reducing inflammation with somewhat less platelet/GI effect than nonselective NSAIDs.",dental:"Used for dental pain/inflammation; GI and renal precautions still apply despite reduced platelet effect.",bleed:"Less pronounced antiplatelet effect than nonselective NSAIDs, but caution still warranted with anticoagulants.",la:"No direct interaction.",adverse:["GI upset","Headache","Dizziness"],bleedRisk:false,laRisk:false},
+{name:"Diclofenac",brand:"Voltaren",cat:"NSAID (Nonselective COX Inhibitor)",moa:"Nonselectively inhibits COX-1 and COX-2, reducing prostaglandin synthesis; available topically and orally.",dental:"Used for dental pain; carries a higher hepatotoxicity risk than other NSAIDs with prolonged use.",bleed:"Reversible antiplatelet effect, additive with anticoagulants.",la:"No direct interaction.",adverse:["GI upset","Headache","Elevated liver enzymes"],bleedRisk:true,laRisk:false},
+{name:"Acetaminophen",brand:"Tylenol",cat:"Non-Opioid Analgesic/Antipyretic",moa:"Central mechanism not fully defined; thought to inhibit central prostaglandin synthesis with minimal peripheral anti-inflammatory activity.",dental:"First-line analgesic for dental pain when NSAIDs are contraindicated (bleeding risk, renal disease, pregnancy); hepatotoxicity risk above 3–4 g/day or when combined with other acetaminophen-containing products.",bleed:"No significant effect on platelet function or bleeding.",la:"No known interaction.",adverse:["Nausea (uncommon at therapeutic doses)"],bleedRisk:false,laRisk:false},
+{name:"Acetaminophen/Hydrocodone",brand:"Norco, Vicodin",cat:"Opioid Analgesic Combination",moa:"Hydrocodone acts as a mu-opioid receptor agonist providing analgesia; combined with acetaminophen for additive pain relief.",dental:"Prescribed for moderate-to-severe dental pain after extractions/surgery; respiratory depression risk rises with concurrent benzodiazepines. Track total daily acetaminophen dose to avoid hepatotoxicity.",bleed:"No significant direct effect on platelet function.",la:"No direct interaction; monitor for additive sedation if used with in-office sedatives.",adverse:["Constipation","Nausea","Drowsiness","Dizziness"],bleedRisk:false,laRisk:false},
+{name:"Tramadol",brand:"Ultram",cat:"Opioid Analgesic (Atypical, SNRI-like)",moa:"Weak mu-opioid receptor agonist that also inhibits serotonin and norepinephrine reuptake, providing a dual analgesic mechanism.",dental:"Used for moderate dental pain; lowers seizure threshold and carries serotonin syndrome risk when combined with SSRIs/SNRIs common among dental patients.",bleed:"Mild serotonergic platelet effect possible when combined with SSRIs.",la:"No direct interaction; caution with norepinephrine reuptake inhibition potentiating vasoconstrictors at high doses.",adverse:["Nausea","Dizziness","Constipation","Headache"],bleedRisk:false,laRisk:true},
+{name:"Oxycodone",brand:"Roxicodone; Percocet w/APAP",cat:"Opioid Analgesic",moa:"Mu-opioid receptor agonist providing potent central analgesia.",dental:"Used for moderate-to-severe dental/surgical pain; respiratory depression risk especially with benzodiazepines. Prescribe cautiously per current opioid-stewardship guidelines given abuse/diversion potential.",bleed:"No significant direct platelet effect.",la:"No direct interaction; monitor for additive sedation with dental sedation regimens.",adverse:["Constipation","Nausea","Sedation","Dizziness"],bleedRisk:false,laRisk:false},
+{name:"Morphine",brand:"Generic",cat:"Opioid Analgesic",moa:"Mu-opioid receptor agonist, the prototypical opioid, providing strong central analgesia.",dental:"Rarely first-line for outpatient dental pain given respiratory depression risk and abuse potential; reserved for severe post-surgical pain in monitored settings.",bleed:"No significant direct platelet effect.",la:"No direct interaction; monitor for additive CNS/respiratory depression.",adverse:["Constipation","Sedation","Nausea","Pruritus"],bleedRisk:false,laRisk:false},
+{name:"Amoxicillin",brand:"Generic",cat:"Aminopenicillin (Beta-Lactam Antibiotic)",moa:"Binds penicillin-binding proteins to inhibit bacterial cell wall synthesis, causing bacterial lysis.",dental:"First-line antibiotic for odontogenic infections and the standard agent for infective-endocarditis prophylaxis in at-risk patients — screen for penicillin allergy before prescribing.",bleed:"No significant direct effect; broad-spectrum antibiotics can reduce gut flora and theoretically affect vitamin K synthesis, mildly potentiating warfarin.",la:"No known interaction.",adverse:["Diarrhea","Nausea","Rash"],bleedRisk:false,laRisk:false},
+{name:"Amoxicillin/Clavulanate",brand:"Augmentin",cat:"Aminopenicillin + Beta-Lactamase Inhibitor",moa:"Amoxicillin inhibits cell wall synthesis; clavulanate inhibits bacterial beta-lactamase enzymes, extending coverage to resistant organisms.",dental:"Used for more resistant or spreading odontogenic infections; higher rate of GI upset than amoxicillin alone.",bleed:"Can potentiate warfarin via gut flora suppression, raising INR.",la:"No known interaction.",adverse:["Diarrhea","Nausea","GI upset"],bleedRisk:false,laRisk:false},
+{name:"Azithromycin",brand:"Zithromax, Z-Pak",cat:"Macrolide Antibiotic",moa:"Binds the bacterial 50S ribosomal subunit, inhibiting protein synthesis; a common alternative for penicillin-allergic patients.",dental:"Common alternative for endocarditis prophylaxis/odontogenic infection in penicillin-allergic patients; short course improves compliance.",bleed:"No significant direct effect on bleeding.",la:"No known interaction.",adverse:["Diarrhea","Nausea","Abdominal pain"],bleedRisk:false,laRisk:false},
+{name:"Cephalexin",brand:"Keflex",cat:"First-Generation Cephalosporin",moa:"Binds penicillin-binding proteins to inhibit bacterial cell wall synthesis.",dental:"Alternative for odontogenic infections; cross-reactivity with penicillin allergy is low but should be considered in severe (anaphylactic) penicillin allergy.",bleed:"No significant direct effect on bleeding.",la:"No known interaction.",adverse:["Diarrhea","Nausea","GI upset"],bleedRisk:false,laRisk:false},
+{name:"Ciprofloxacin",brand:"Cipro",cat:"Fluoroquinolone Antibiotic",moa:"Inhibits bacterial DNA gyrase and topoisomerase IV, blocking DNA replication.",dental:"Not typically first-line for routine odontogenic infections; can prolong the QT interval and carries tendon-toxicity warnings relevant if sedative or QT-prolonging drugs are used.",bleed:"Can potentiate warfarin, increasing INR and bleeding risk.",la:"No direct interaction, but caution with QT-prolonging combinations in sedation.",adverse:["Nausea","Diarrhea","Headache"],bleedRisk:true,laRisk:false},
+{name:"Doxycycline",brand:"Vibramycin",cat:"Tetracycline Antibiotic",moa:"Binds the bacterial 30S ribosomal subunit, inhibiting protein synthesis; also used at sub-antimicrobial doses for periodontal disease via collagenase inhibition.",dental:"Causes permanent tooth discoloration and enamel hypoplasia if used in children under 8 or in utero — avoid in pregnancy and young children; used in adults for low-dose periodontal therapy.",bleed:"Can potentiate warfarin via gut flora suppression.",la:"No known interaction.",adverse:["Photosensitivity","GI upset","Esophageal irritation"],bleedRisk:false,laRisk:false},
+{name:"Clindamycin",brand:"Cleocin",cat:"Lincosamide Antibiotic",moa:"Binds the bacterial 50S ribosomal subunit, inhibiting protein synthesis; effective against anaerobes common in odontogenic infections.",dental:"Historic alternative for endocarditis prophylaxis/odontogenic infection in penicillin-allergic patients, though many current guidelines favor azithromycin or cephalexin first given a notably higher risk of C. difficile-associated diarrhea.",bleed:"No significant direct effect on bleeding.",la:"No known interaction.",adverse:["Diarrhea","Nausea","Metallic taste"],bleedRisk:false,laRisk:false},
+{name:"Sulfamethoxazole/Trimethoprim",brand:"Bactrim",cat:"Sulfonamide Antibiotic Combination",moa:"Sequentially inhibits two steps of bacterial folic acid synthesis (dihydropteroate synthase and dihydrofolate reductase), producing a synergistic bactericidal effect.",dental:"Not a first-line dental antibiotic given limited anaerobic coverage; relevant chiefly for its significant drug interactions.",bleed:"Significantly potentiates warfarin by inhibiting its metabolism, increasing INR and bleeding risk.",la:"No known interaction.",adverse:["Rash","Nausea","Photosensitivity"],bleedRisk:true,laRisk:false},
+{name:"Metronidazole",brand:"Flagyl",cat:"Nitroimidazole Antibiotic",moa:"Reduced intracellularly by anaerobic organisms to reactive compounds that damage bacterial DNA; excellent anaerobic coverage.",dental:"Frequently used adjunctively for anaerobic odontogenic and periodontal infections; causes a disulfiram-like reaction with alcohol and significantly potentiates warfarin — counsel patients to avoid alcohol and monitor INR.",bleed:"Significantly potentiates warfarin, increasing bleeding risk.",la:"No known interaction.",adverse:["Metallic taste","Nausea","GI upset"],bleedRisk:true,laRisk:false},
+{name:"Nitrofurantoin",brand:"Macrobid",cat:"Urinary Antiseptic (Nitrofuran)",moa:"Reduced by bacterial flavoproteins to reactive intermediates that damage bacterial DNA, ribosomes, and other macromolecules; concentrates in urine.",dental:"No significant direct dental relevance; included for completeness given its frequency in general prescribing.",bleed:"No significant effect on bleeding.",la:"No known interaction.",adverse:["Nausea","Headache"],bleedRisk:false,laRisk:false}
+];
+
+const listPane = document.getElementById('listPane');
+const detailInner = document.getElementById('detailInner');
+const detailPane = document.getElementById('detailPane');
+const searchInput = document.getElementById('search');
+const categoryFilter = document.getElementById('categoryFilter');
+const flagFilter = document.getElementById('flagFilter');
+const countTag = document.getElementById('countTag');
+const backBtn = document.getElementById('backBtn');
+
+let activeIndex = null;
+
+function populateCategories(){
+  const cats = Array.from(new Set(DRUGS.map(d=>d.cat))).sort();
+  categoryFilter.innerHTML = '<option value="">All categories</option>' +
+    cats.map(c=>`<option value="${escapeAttr(c)}">${escapeHtml(c)}</option>`).join('');
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function escapeAttr(s){ return escapeHtml(s); }
+
+function matchesFilters(d){
+  const q = searchInput.value.trim().toLowerCase();
+  const cat = categoryFilter.value;
+  const flag = flagFilter.value;
+  if (q && !(d.name.toLowerCase().includes(q) || d.brand.toLowerCase().includes(q))) return false;
+  if (cat && d.cat !== cat) return false;
+  if (flag === 'bleed' && !d.bleedRisk) return false;
+  if (flag === 'la' && !d.laRisk) return false;
+  return true;
+}
+
+function renderList(){
+  const filtered = DRUGS
+    .map((d,i)=>({d,i}))
+    .filter(({d})=>matchesFilters(d));
+
+  countTag.textContent = filtered.length === DRUGS.length
+    ? `${DRUGS.length} medications`
+    : `${filtered.length} of ${DRUGS.length}`;
+
+  if (!filtered.length){
+    listPane.innerHTML = '<div class="empty-list">No medications match your search.</div>';
+    return;
+  }
+
+  listPane.innerHTML = filtered.map(({d,i}) => `
+    <button class="drug-row${i===activeIndex?' active':''}" data-idx="${i}" aria-current="${i===activeIndex}">
+      <div class="drug-row-top">
+        <span class="drug-name">${escapeHtml(d.name)}</span>
+        <span class="drug-brand">${escapeHtml(d.brand)}</span>
+      </div>
+      <div class="drug-cat">${escapeHtml(d.cat)}</div>
+      <div class="chip-row">
+        ${d.bleedRisk ? '<span class="chip warn">⚠ bleeding</span>' : ''}
+        ${d.laRisk ? '<span class="chip warn">⚠ vasoconstrictor</span>' : ''}
+        ${(!d.bleedRisk && !d.laRisk) ? '<span class="chip good">no flagged precautions</span>' : ''}
+      </div>
+    </button>
+  `).join('');
+
+  listPane.querySelectorAll('.drug-row').forEach(btn=>{
+    btn.addEventListener('click', ()=> selectDrug(parseInt(btn.dataset.idx,10)));
+  });
+}
+
+function renderDetail(){
+  if (activeIndex === null){
+    detailInner.innerHTML = '<div class="detail-empty">Select a medication to view its dental profile.</div>';
+    return;
+  }
+  const d = DRUGS[activeIndex];
+  detailInner.innerHTML = `
+    <div class="detail-head">
+      <p class="detail-eyebrow">Dental Drug Profile</p>
+      <h2>${escapeHtml(d.name)}</h2>
+      <p class="detail-brand">${escapeHtml(d.brand)}</p>
+      <span class="detail-cat">${escapeHtml(d.cat)}</span>
+    </div>
+
+    <div class="field">
+      <h3>Mechanism of Action</h3>
+      <p>${escapeHtml(d.moa)}</p>
+    </div>
+
+    <div class="field">
+      <h3>Effects on Dental Treatment</h3>
+      <p>${escapeHtml(d.dental)}</p>
+    </div>
+
+    <div class="field ${d.bleedRisk ? 'flagged' : 'safe'}">
+      <h3>${d.bleedRisk ? '⚠ ' : '✓ '}Effects on Bleeding</h3>
+      <p>${escapeHtml(d.bleed)}</p>
+    </div>
+
+    <div class="field ${d.laRisk ? 'flagged' : 'safe'}">
+      <h3>${d.laRisk ? '⚠ ' : '✓ '}Effects on Local Anesthesia</h3>
+      <p>${escapeHtml(d.la)}</p>
+    </div>
+
+    <div class="field">
+      <h3>Adverse Effects (commonly &ge;10%)</h3>
+      <ul class="adverse-list">
+        ${d.adverse.map(a=>`<li>${escapeHtml(a)}</li>`).join('')}
+      </ul>
+    </div>
+  `;
+}
+
+function selectDrug(idx){
+  activeIndex = idx;
+  renderList();
+  renderDetail();
+  if (window.matchMedia('(max-width: 780px)').matches){
+    detailPane.classList.add('open');
+  }
+  detailPane.scrollTop = 0;
+}
+
+backBtn.addEventListener('click', ()=>{
+  detailPane.classList.remove('open');
+});
+
+searchInput.addEventListener('input', renderList);
+categoryFilter.addEventListener('change', renderList);
+flagFilter.addEventListener('change', renderList);
+
+populateCategories();
+renderList();
+renderDetail();
+</script>
